@@ -367,7 +367,9 @@ resource "aws_instance" "hoss_server" {
     )
   }
 
-  tags = (merge(var.tags,
+  tags = (merge(
+    var.tags_instance,
+    var.tags,
     { "HossResource" = "True",
       "HossServer"   = "${var.server_domain_name}"
       "Name"         = "hoss-server",
