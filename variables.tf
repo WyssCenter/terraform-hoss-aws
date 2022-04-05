@@ -84,5 +84,5 @@ variable "tags_instance" {
 variable "security_group_ids" {
   description = "Additional security groups to add to created instance."
   type        = list(string)
-  default     = {}
+  default     = []
 }
