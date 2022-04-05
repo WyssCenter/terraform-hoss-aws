@@ -65,6 +65,7 @@ module "hoss-server" {
 | region | Region into which non-global resources will be deployed | `string` | `us-east-1` | no |
 | tags | Additional tags to apply to created resources | `map(string)` | `{}` | no |
 | tags_instance | Additional tags to add to created instance | `map(string)` | `{}` | no |
+| security_group_ids | Additional security groups to add to created instance | `list(string)` | `{}` | no |
 
 
 

@@ -79,3 +79,10 @@ variable "tags_instance" {
   type        = map(string)
   default     = {}
 }
+
+
+variable "security_group_ids" {
+  description = "Additional security groups to add to created instance."
+  type        = list(string)
+  default     = {}
+}

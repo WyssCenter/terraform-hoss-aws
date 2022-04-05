@@ -350,7 +350,7 @@ resource "aws_instance" "hoss_server" {
   key_name      = var.server_key_name
   subnet_id     = var.subnet_id
 
-  vpc_security_group_ids = [aws_security_group.hoss_server_sg.id]
+  vpc_security_group_ids = concat([aws_security_group.hoss_server_sg.id],var.security_group_ids)
 
   # Optional variables
   iam_instance_profile = var.server_iam_instance_profile
