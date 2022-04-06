@@ -34,7 +34,7 @@ module "hoss-server" {
   subnet_id = "subnet-1234"
 
   buckets = [{
-      "hos-default-bucket" = {name = "hos-default-bucket", versioning = false}
+      "hos-default-bucket" = {name = "hos-default-bucket", versioning = "enbaled"}
       
   }]
 
