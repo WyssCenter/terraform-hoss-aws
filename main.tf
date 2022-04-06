@@ -82,7 +82,7 @@ resource "aws_s3_bucket_versioning" "bucket_versioning" {
   for_each    = aws_s3_bucket.buckets
   bucket      = each.value.id
   versioning_configuration {
-    status = each.value.versioning
+    status = lookup(var.buckets,each.value.name).versioning
   }
 }
 
