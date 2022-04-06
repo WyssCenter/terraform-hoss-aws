@@ -13,7 +13,7 @@ variable "buckets" {
   description = "The buckets used to back the Hoss server storage"
   type = map(object({
     name       = string
-    versioning = bool
+    versioning = string
   }))
 }
 
