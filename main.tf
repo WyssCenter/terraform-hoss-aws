@@ -9,7 +9,55 @@ resource "aws_s3_bucket" "buckets" {
   for_each = var.buckets
 
   bucket = each.value.name
-  acl    = "private"
+  #acl    = "private"
+
+  # cors rule is needed to let the Hoss file browser directly interact
+  # with files in this bucket via a user's STS credentials.
+  /*
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["HEAD", "GET", "POST", "PUT", "DELETE"]
+    allowed_origins = ["https://${var.server_domain_name}", "https://${var.server_domain_name}/"]
+    expose_headers = ["ETag",
+      "Content-Type",
+      "Content-Length",
+      "x-amz-meta-custom-header",
+      "x-amz-server-side-encryption",
+      "x-amz-request-id",
+      "x-amz-delete-marker",
+      "x-amz-id-2",
+    "Date"]
+    max_age_seconds = 3000
+  }
+  */
+
+  /*
+  versioning {
+    enabled = each.value.versioning
+  }
+  */
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to lifecycle_rule because this is expected to be
+      # managed by the admin manually based on their preference. Also,
+      # the recommended configuration is not fully supported in terraform
+      # yet because you cannot specify the number of noncurrent objects to retain.
+      lifecycle_rule,
+    ]
+  }
+
+  tags = (merge(var.tags,
+    { "HossResource" = "True",
+      "HossServer"   = "${var.server_domain_name}"
+    })
+  )
+
+}
+
+resource "aws_s3_bucket_cors_configuration" "bucket_cors_configuration" {
+  for_each    = aws_s3_bucket.buckets
+  bucket      = each.value.id
 
   # cors rule is needed to let the Hoss file browser directly interact
   # with files in this bucket via a user's STS credentials.
@@ -28,27 +76,20 @@ resource "aws_s3_bucket" "buckets" {
     "Date"]
     max_age_seconds = 3000
   }
+}
 
-  versioning {
-    enabled = each.value.versioning
+resource "aws_s3_bucket_versioning" "bucket_versioning" {
+  for_each    = aws_s3_bucket.buckets
+  bucket      = each.value.id
+  versioning_configuration {
+    status = each.value.versioning
   }
+}
 
-  lifecycle {
-    ignore_changes = [
-      # Ignore changes to lifecycle_rule because this is expected to be
-      # managed by the admin manually based on their preference. Also,
-      # the recommended configuration is not fully supported in terraform
-      # yet because you cannot specify the number of noncurrent objects to retain.
-      lifecycle_rule,
-    ]
-  }
-
-  tags = (merge(var.tags,
-    { "HossResource" = "True",
-      "HossServer"   = "${var.server_domain_name}"
-    })
-  )
-
+resource "aws_s3_bucket_acl" "bucket_acl" {
+  for_each    = aws_s3_bucket.buckets
+  bucket      = each.value.id
+  acl         = "private"
 }
 
 resource "aws_s3_bucket_public_access_block" "bucket_block_public" {
