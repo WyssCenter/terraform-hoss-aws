@@ -425,7 +425,7 @@ resource "aws_iam_user" "client_sync_account_user" {
   )
 }
 
-resource "aws_iam_user_policy_attachment" "service_sync_account_policy_attach" {
+resource "aws_iam_user_policy_attachment" "client_sync_account_policy_attach" {
   user       = aws_iam_user.client_sync_account_user.name
   policy_arn = aws_iam_policy.client_sync_account_policy.arn
 }
