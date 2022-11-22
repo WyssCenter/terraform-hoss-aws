@@ -345,6 +345,7 @@ data "aws_iam_policy_document" "service_sync_account_policy_document" {
       "s3:GetObject",
       "s3:ListBucket",
       "s3:PutBucketNotification",
+      "s3:PutObjectTagging",
       "s3:PutObject",
           ]
 
@@ -395,6 +396,7 @@ data "aws_iam_policy_document" "client_sync_account_policy_document" {
       "s3:GetObject",
       "s3:ListBucket",
       "s3:PutBucketNotification",
+      "s3:PutObjectTagging",
       "s3:PutObject",
           ]
 
