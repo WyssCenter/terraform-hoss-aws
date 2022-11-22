@@ -1,10 +1,9 @@
 # Make sure the account ID is available
 data "aws_caller_identity" "current" {}
 
+#####################################################################################################
+######## S3 Bucket and Queue Setup
 
-
-
-# ### S3 Bucket and Queue Setup
 resource "aws_s3_bucket" "buckets" {
   for_each = var.buckets
 
@@ -155,13 +154,11 @@ resource "aws_sqs_queue" "api_notification_queue" {
   )
 }
 
-# ### S3 Bucket and Queue Setup
 
+#####################################################################################################
+######## IAM Policy and Role for STS Credential Generation
 
-
-
-
-# ### IAM Policy and Role for STS Credential Generation
+# 
 data "aws_iam_policy_document" "sts_creds_policy_document" {
   statement {
     sid = "HOSSUserSTSRolePolicy"
@@ -235,11 +232,11 @@ resource "aws_iam_policy_attachment" "hoss_user_sts_role_policy_attach" {
   roles      = ["${aws_iam_role.hoss_user_sts_role.name}"]
   policy_arn = aws_iam_policy.sts_creds_policy.arn
 }
-# ### IAM Policy and Role for STS Credential Generation
 
 
+#####################################################################################################
+######## IAM Policy and Service Account User
 
-# ### IAM Policy and Service Account User
 data "aws_iam_policy_document" "service_account_policy_document" {
   statement {
     sid = "ServiceAccountCore"
@@ -332,11 +329,110 @@ resource "aws_iam_user_policy_attachment" "hoss_service_account_policy_attach" {
   user       = aws_iam_user.hoss_service_account_user.name
   policy_arn = aws_iam_policy.service_account_policy.arn
 }
-# ### IAM Policy and Service Acount User
 
+#####################################################################################################
+######## IAM Policy and SYNC Service Account User
 
+data "aws_iam_policy_document" "service_sync_account_policy_document" {
+  statement {
+    sid = "ServiceSyncAccountCore"
 
-# ### EC2 instance to run the server
+    effect = "Allow"
+
+    actions = [
+      "s3:DeleteObject",
+      "s3:GetBucketNotification",
+      "s3:GetObject",
+      "s3:ListBucket",
+      "s3:PutBucketNotification",
+      "s3:PutObject",
+          ]
+
+    resources = concat([for i, v in var.buckets : "arn:aws:s3:::${v.name}"], [for i, v in var.buckets : "arn:aws:s3:::${v.name}/*"])
+
+  }
+
+}
+
+resource "aws_iam_policy" "service_sync_account_policy" {
+  name        = "sync_service_account_policy"
+  description = "Policy used by the sync service account"
+  path        = "/"
+  policy      = data.aws_iam_policy_document.service_sync_account_policy_document.json
+
+  tags = (merge(var.tags,
+    { "HossResource" = "True"
+    })
+  )
+}
+
+resource "aws_iam_user" "service_sync_account_user" {
+  name = "sync_service_account"
+
+  tags = (merge(var.tags,
+    { "HossResource" = "True"
+    })
+  )
+}
+
+resource "aws_iam_user_policy_attachment" "service_sync_account_policy_attach" {
+  user       = aws_iam_user.service_sync_account_user.name
+  policy_arn = aws_iam_policy.service_sync_account_policy.arn
+}
+
+#####################################################################################################
+######## IAM Policy and Client Account User
+
+data "aws_iam_policy_document" "client_sync_account_policy_document" {
+  statement {
+    sid = "ClientSyncAccountCore"
+
+    effect = "Allow"
+
+    actions = [
+      "s3:DeleteObject",
+      "s3:GetBucketNotification",
+      "s3:GetObject",
+      "s3:ListBucket",
+      "s3:PutBucketNotification",
+      "s3:PutObject",
+          ]
+
+    resources = concat([for i, v in var.buckets : "arn:aws:s3:::${v.name}"], [for i, v in var.buckets : "arn:aws:s3:::${v.name}/*"])
+
+  }
+
+}
+
+resource "aws_iam_policy" "client_sync_account_policy" {
+  name        = "sync_client_account_policy"
+  description = "Policy used by the sync client account"
+  path        = "/"
+  policy      = data.aws_iam_policy_document.client_sync_account_policy_document.json
+
+  tags = (merge(var.tags,
+    { "HossResource" = "True"
+    })
+  )
+}
+
+resource "aws_iam_user" "client_sync_account_user" {
+  name = "sync_client_account"
+
+  tags = (merge(var.tags,
+    { "HossResource" = "True"
+    })
+  )
+}
+
+resource "aws_iam_user_policy_attachment" "service_sync_account_policy_attach" {
+  user       = aws_iam_user.client_sync_account_user.name
+  policy_arn = aws_iam_policy.client_sync_account_policy.arn
+}
+
+#####################################################################################################
+######## EC2 instance to run the server
+
 data "aws_vpc" "hoss_vpc" {
   id = var.vpc_id
 }
@@ -417,4 +513,4 @@ resource "aws_instance" "hoss_server" {
     })
   )
 }
-# ### EC2 instance to run the server
+
